@@ -282,7 +282,9 @@ if (!flag('--dry-run')) {
       ].join('\n')),
       'To change the wording, edit `site/bulletins.json` on this branch. To drop a draft, delete its entry. The watcher remembers what it has seen, so closing this PR does not bring the same items back.',
     ].join('\n');
-    writeFileSync(new URL('watch/.pr-body.md', ROOT), body);
+    // Text from outside databases must not ping people or teams on GitHub:
+    // a zero-width space after "@" stops "@someone" becoming a mention.
+    writeFileSync(new URL('watch/.pr-body.md', ROOT), body.replace(/@(?=[A-Za-z0-9])/g, '@\u200b'));
   }
   remember();
 }
