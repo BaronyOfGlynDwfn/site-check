@@ -47,7 +47,7 @@ export function parseItemLine(line) {
   const cut = Math.min(...idx);
   const name = line.slice(0, cut).trim();
   const rest = line.slice(cut + 2);
-  const version = (rest.match(/(?:^|,\s*)version:\s*([^,]+)/) || [])[1]?.trim();
+  const version = (rest.match(/(?:^|,\s*)version:\s*([^,(]+)/) || [])[1]?.trim();
   const latest = (rest.match(/\(latest version:\s*([^)]+)\)/) || [])[1]?.trim();
   const auto = (rest.match(/Auto-updates (enabled|disabled)/i) || [])[1];
   const author = (rest.match(/author:\s*(.*?)(?:\s*\(latest version:[^)]*\))?(?:,\s*(?:version:|Auto-updates)|$)/) || [])[1];
@@ -100,7 +100,10 @@ export function parseSiteHealth(text) {
     wordpress: core.version || null,
     multisite: core.multisite === 'true',
     userRegistration: core.user_registration === '1',
-    php: (server.php_version || '').split(/\s+/)[0] || null,
+    // "8.1.2-1ubuntu2.14 64bit" -> "8.1.2"; the raw string is kept so we can say
+    // the host's distribution may patch without changing the number.
+    php: ((server.php_version || '').match(/^\d+\.\d+(?:\.\d+)?/) || [])[0] || null,
+    phpRaw: (server.php_version || '').split(/\s+/)[0] || null,
     database: db.server_version || null,
     items,
   };
@@ -115,6 +118,7 @@ const SPECIAL = { dev: 0, alpha: 1, a: 1, beta: 2, b: 2, rc: 3, '#': 4, pl: 5, p
 function canon(v) {
   return String(v)
     .trim()
+    .replace(/^v(?=\d)/i, '')
     .replace(/[-_+]/g, '.')
     .replace(/([^.\d]+)/g, '.$1.')
     .split('.')
@@ -132,13 +136,22 @@ function cmpPart(a, b) {
   return na ? r : -r;
 }
 
+// Everything from index i on is zeros (=> equal) or not (=> the longer one is newer).
+function cmpRest(parts, i) {
+  const rest = parts.slice(i);
+  if (rest.every((x) => /^0+$/.test(x))) return 0;
+  const firstNonZero = rest.find((x) => !/^0+$/.test(x));
+  return /^\d+$/.test(firstNonZero) ? 1 : (SPECIAL[firstNonZero.toLowerCase()] ?? -1) >= SPECIAL.pl ? 1 : -1;
+}
+
 export function compareVersions(a, b) {
   const pa = canon(a);
   const pb = canon(b);
   const n = Math.max(pa.length, pb.length);
   for (let i = 0; i < n; i++) {
-    if (pa[i] === undefined) return /^\d+$/.test(pb[i]) ? -1 : 1;
-    if (pb[i] === undefined) return /^\d+$/.test(pa[i]) ? 1 : -1;
+    // "2.0" equals "2.0.0"; "2.0" is newer than "2.0-beta1"
+    if (pa[i] === undefined) return -cmpRest(pb, i) || 0;
+    if (pb[i] === undefined) return cmpRest(pa, i);
     const c = cmpPart(pa[i], pb[i]);
     if (c) return c;
   }
@@ -316,8 +329,28 @@ export async function findSlug(kind, item, fetchJson) {
 
 const CUSTOM_HINT = 'Not listed on wordpress.org (custom, premium or host-installed), so it can\'t be checked here.';
 
+// A failed or 404 lookup becomes null so one bad answer never stops the whole check.
+async function tryFetch(fetchJson, url) {
+  try {
+    return await fetchJson(url);
+  } catch {
+    return null;
+  }
+}
+
+// Active/parent themes come with their folder name. A custom theme can share a
+// folder name with an unrelated wordpress.org theme ("herald", "astra-child"),
+// so only trust the folder name when the wordpress.org theme has the same name.
+async function verifyThemeSlug(item, fetchJson) {
+  const url = `${WPORG_API}/themes/info/1.2/?action=theme_information&request[slug]=${encodeURIComponent(item.slug)}` +
+    '&request[fields][sections]=0&request[fields][description]=0';
+  const info = await tryFetch(fetchJson, url);
+  if (!info || info.error || !info.name) return null;
+  return normName(info.name) === normName(item.name) ? { slug: info.slug || item.slug, latest: info.version || null } : null;
+}
+
 async function checkItem(item, fetchJson) {
-  const result = { ...item, vulns: [], closed: null, slug: item.slug || null, checked: false, note: null };
+  const result = { ...item, vulns: [], slug: null, checked: false, note: null };
   if (item.kind === 'mu-plugin') {
     result.note = 'Must-use plugin: a file WordPress always loads. It can\'t be checked here; ask whoever installed it what it does.';
     return result;
@@ -326,29 +359,41 @@ async function checkItem(item, fetchJson) {
     result.note = 'No version number, so it can\'t be checked.';
     return result;
   }
-  let latest = item.latest;
-  if (!result.slug) {
-    const found = await findSlug(item.kind, item, fetchJson);
-    if (!found) {
-      result.note = CUSTOM_HINT;
-      return result;
-    }
-    result.slug = found.slug;
-    result.matchedBy = found.how;
-    latest = latest || found.latest;
-  }
-  const data = (await fetchJson(`${VULN_API}/${item.kind}/${encodeURIComponent(result.slug)}/`))?.data;
-  if (!data || (!data.name && !data.vulnerability)) {
-    // An unknown slug (e.g. a custom theme whose folder name isn't on wordpress.org)
+  const found = item.kind === 'theme' && item.slug
+    ? await verifyThemeSlug(item, fetchJson)
+    : await findSlug(item.kind, item, fetchJson);
+  if (!found) {
     result.note = CUSTOM_HINT;
     return result;
   }
+  result.slug = found.slug;
+  result.matchedBy = found.how || 'name';
+  const data = (await fetchJson(`${VULN_API}/${item.kind}/${encodeURIComponent(result.slug)}/`))?.data;
+  if (!data) {
+    result.note = 'The vulnerability database had no answer for this one. Try again later.';
+    return result;
+  }
   result.checked = true;
-  // (WPVulnerability's "latest" is a timestamp and its "closed" flag marks live
-  // plugins such as bbPress as closed, so neither is used.)
-  result.latest = latest || null;
+  // wordpress.org's current version. (WPVulnerability's "latest" is a timestamp
+  // and its "closed" flag marks live plugins such as bbPress as closed, so
+  // neither is used.)
+  result.latest = item.latest || found.latest || null;
   result.vulns = matchVulns(data.vulnerability, item.version);
   return result;
+}
+
+// Run fn over items with at most `limit` in flight, keeping the input order.
+async function pool(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
 }
 
 export async function checkSite(info, fetchJson, onProgress = () => {}) {
@@ -356,49 +401,59 @@ export async function checkSite(info, fetchJson, onProgress = () => {}) {
   let done = 0;
   const tick = (label) => onProgress(++done, total, label);
 
-  const coreLatest = await fetchJson(`${WPORG_API}/core/version-check/1.7/`).then(
-    (d) => d?.offers?.[0]?.current || null,
-    () => null
-  );
-  const coreData = info.wordpress
-    ? (await fetchJson(`${VULN_API}/core/${encodeURIComponent(info.wordpress)}/`))?.data
-    : null;
-  const core = {
-    kind: 'core',
-    name: 'WordPress',
-    version: info.wordpress,
-    latest: coreLatest,
-    checked: Boolean(coreData),
-    vulns: coreData ? matchVulns(coreData.vulnerability, info.wordpress, true) : [],
-  };
-  tick('WordPress');
+  const coreTask = (async () => {
+    const [latestData, coreRes] = await Promise.all([
+      tryFetch(fetchJson, `${WPORG_API}/core/version-check/1.7/`),
+      info.wordpress ? tryFetch(fetchJson, `${VULN_API}/core/${encodeURIComponent(info.wordpress)}/`) : null,
+    ]);
+    const coreData = coreRes?.data;
+    tick('WordPress');
+    return {
+      kind: 'core',
+      name: 'WordPress',
+      version: info.wordpress,
+      latest: latestData?.offers?.[0]?.current || null,
+      checked: Boolean(coreData),
+      note: coreData ? null : 'The vulnerability database didn\'t recognise this WordPress version (a beta, or a release from the last few hours?). Check Dashboard → Updates instead.',
+      vulns: coreData ? matchVulns(coreData.vulnerability, info.wordpress, true) : [],
+    };
+  })();
 
-  let php = null;
-  if (info.php) {
+  const phpTask = (async () => {
+    if (!info.php) {
+      tick('PHP');
+      return null;
+    }
     const branch = info.php.split('.').slice(0, 2).join('.');
-    const data = (await fetchJson(`${VULN_API}/php/${encodeURIComponent(info.php)}/`))?.data;
-    php = {
+    const data = (await tryFetch(fetchJson, `${VULN_API}/php/${encodeURIComponent(info.php)}/`))?.data;
+    tick('PHP');
+    return {
       kind: 'php',
       name: 'PHP',
       version: info.php,
+      raw: info.phpRaw,
+      distroBuild: Boolean(info.phpRaw && info.phpRaw !== info.php),
       branch,
       checked: Boolean(data),
+      note: data ? null : 'The vulnerability database had no answer for this PHP version.',
       endOfLife: data?.status === 'd' || (data?.date_end && new Date(data.date_end) < new Date()) || false,
       supportEnds: data?.date_end || null,
       vulns: data ? matchVulns(data.vulnerability, info.php) : [],
     };
-  }
-  tick('PHP');
+  })();
 
-  const items = [];
-  for (const item of info.items) {
+  const itemsTask = pool(info.items, 5, async (item) => {
+    let r;
     try {
-      items.push(await checkItem(item, fetchJson));
+      r = await checkItem(item, fetchJson);
     } catch (e) {
-      items.push({ ...item, vulns: [], checked: false, note: 'Lookup failed (' + e.message + '). Try again later.' });
+      r = { ...item, vulns: [], checked: false, note: 'Lookup failed (' + e.message + '). Try again later.' };
     }
     tick(item.name);
-  }
+    return r;
+  });
+
+  const [core, php, items] = await Promise.all([coreTask, phpTask, itemsTask]);
   return { core, php, items, userRegistration: info.userRegistration };
 }
 
@@ -466,13 +521,15 @@ export function classify(results) {
   const push = (group, r, extra) => out.push({ group, item: r, ...extra });
 
   const { core, php } = results;
-  if (core) {
+  if (core && !core.checked) push('unchecked', core, { note: core.note });
+  else if (core) {
     if (core.vulns.length) push('fix', core, { steps: updateSteps(core) });
     else if (core.latest && compareVersions(core.version, core.latest) < 0) push('update', core, { steps: updateSteps(core) });
     else push('ok', core);
   }
 
-  if (php) {
+  if (php && !php.checked) push('unchecked', php, { note: php.note });
+  else if (php) {
     if (php.vulns.length || php.endOfLife) {
       push('host', php, {
         steps: [
@@ -498,9 +555,7 @@ export function classify(results) {
     const behind = r.latest && compareVersions(r.version, r.latest) < 0;
     // An outdated default theme is worth keeping (updated) as a fallback.
     const defaultTheme = r.kind === 'theme' && /^twenty/.test(r.slug || '');
-    if (inactive && (vulnerable || r.closed || (behind && !defaultTheme))) {
-      push('remove', r, { steps: removeSteps(r) });
-    } else if (r.closed && r.status !== 'parent' && r.kind !== 'theme') {
+    if (inactive && (vulnerable || (behind && !defaultTheme))) {
       push('remove', r, { steps: removeSteps(r) });
     } else if (vulnerable && anyUnfixed) {
       push('nofix', r, { steps: removeSteps(r) });
@@ -536,4 +591,18 @@ export function hostEmail(php) {
   }
   lines.push('', 'Thank you.');
   return lines.join('\n');
+}
+
+// A bulletin applies only while the installed version is below its fix.
+// fixedIn can list one fix per branch (PHP 8.3.36, 8.4.27 …): use the one on
+// the installed branch, and treat older unlisted branches as affected.
+export function bulletinApplies(a, item) {
+  if (a.kind !== item.kind || (a.slug && a.slug !== item.slug)) return false;
+  if (!item.version || !a.fixedIn) return true;
+  const fixes = [].concat(a.fixedIn);
+  if (fixes.length === 1) return compareVersions(item.version, fixes[0]) < 0;
+  const branch = (v) => v.split('.').slice(0, 2).join('.');
+  const same = fixes.find((f) => branch(f) === branch(item.version));
+  if (same) return compareVersions(item.version, same) < 0;
+  return fixes.every((f) => compareVersions(item.version, f) < 0);
 }

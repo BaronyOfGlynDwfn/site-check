@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   parseSiteHealth, parseItemLine, compareVersions, affects, fixedIn,
-  matchVulns, contradictedBySources, checkSite, classify, hostEmail, findSlug, normName,
+  matchVulns, contradictedBySources, checkSite, classify, hostEmail, findSlug, normName, bulletinApplies,
 } from '../site/lib.js';
 
 const sample = readFileSync(new URL('./fixtures/site-health-sample.txt', import.meta.url), 'utf8');
@@ -51,7 +51,7 @@ test('plugin line with commas in author', () => {
 test('version comparison', () => {
   assert.equal(compareVersions('6.18.2', '6.18.3'), -1);
   assert.equal(compareVersions('6.18.3.1', '6.18.3'), 1);
-  assert.equal(compareVersions('7.1', '7.1.0'), -1);
+  assert.equal(compareVersions('7.1', '7.1.0'), 0);
   assert.equal(compareVersions('1.0.0', '1.0.0'), 0);
   assert.equal(compareVersions('2.0-beta1', '2.0'), -1);
   assert.equal(compareVersions('2.0-RC1', '2.0-beta2'), 1);
@@ -99,7 +99,7 @@ const vulnDb = {
   'plugin/abandoned-gallery': { name: 'AG', closed: 1, closed_reason: 'unknown', vulnerability: [] },
   'plugin/hello-dolly': { name: 'HD', vulnerability: [] },
   'theme/herald-mobile': { vulnerability: null },
-  'theme/herald': { vulnerability: null },
+  'theme/herald': { name: 'Herald Pro Magazine', vulnerability: [vuln('9.0')] },
   'theme/neve': { name: 'Neve', vulnerability: [] },
   'theme/twentytwentyfive': { name: 'TT5', vulnerability: [] },
 };
@@ -109,6 +109,12 @@ async function fakeFetch(url) {
   if (u.hostname === 'api.wordpress.org') {
     if (u.pathname.startsWith('/core/version-check')) return { offers: [{ current: '7.1.4' }] };
     const q = u.searchParams.get('request[search]');
+    if (u.searchParams.get('action') === 'theme_information') {
+      const slug = u.searchParams.get('request[slug]');
+      const known = { herald: 'Herald Pro Magazine' }; // same folder name, different theme
+      if (!known[slug]) throw new Error('HTTP 404');
+      return { name: known[slug], slug, version: '3.0' };
+    }
     if (u.pathname.startsWith('/themes')) {
       const themes = { Neve: 'neve', 'Twenty Twenty-Five': 'twentytwentyfive' };
       return { themes: themes[q] ? [{ name: q, slug: themes[q], version: '9' }, { name: q + ' Pro', slug: 'other' }] : [] };
@@ -222,4 +228,53 @@ test('MainWP Child beats MainWP Dashboard by name shape', async () => {
 test('host email for end-of-life PHP without listed vulns', () => {
   const t = hostEmail({ version: '8.1.30', branch: '8.1', endOfLife: true, vulns: [] });
   assert.match(t, /no longer receives security fixes/);
+});
+
+test('version text stops before "(latest version: …)" in either field order', () => {
+  const p = parseItemLine('Old Snapshot: author: (undefined), version: 1.0.0 (latest version: 1.1), Auto-updates disabled');
+  assert.equal(p.version, '1.0.0');
+  assert.equal(p.latest, '1.1');
+});
+
+test('distribution PHP builds are reduced to the upstream number', () => {
+  const info = parseSiteHealth(sample.replace('php_version: 8.3.35 64bit', 'php_version: 8.1.2-1ubuntu2.14 64bit'));
+  assert.equal(info.php, '8.1.2');
+  assert.equal(info.phpRaw, '8.1.2-1ubuntu2.14');
+});
+
+test('a failed WordPress or PHP lookup does not stop the plugin checks', async () => {
+  const flaky = async (url) => {
+    if (/wpvulnerability\.net\/(core|php)\//.test(url)) throw new Error('HTTP 404');
+    return fakeFetch(url);
+  };
+  const results = await checkSite(parseSiteHealth(sample), flaky);
+  const groups = Object.fromEntries(classify(results).map((e) => [e.item.name, e.group]));
+  assert.equal(groups.WordPress, 'unchecked');
+  assert.equal(groups.PHP, 'unchecked');
+  assert.equal(groups['The Events Calendar'], 'fix');
+});
+
+test('a custom theme sharing a folder name with a wordpress.org theme is not matched', async () => {
+  const results = await checkSite(parseSiteHealth(sample), fakeFetch);
+  const herald = results.items.find((i) => i.name === 'Herald');
+  assert.equal(herald.checked, false);
+  assert.equal(herald.vulns.length, 0);
+});
+
+test('version comparison: leading v and trailing zeros', () => {
+  assert.equal(compareVersions('v2.1.0', '2.0'), 1);
+  assert.equal(compareVersions('2.0', '2.0.0'), 0);
+  assert.ok(!affects('2.0', { max_operator: 'lt', max_version: '2.0.0', unfixed: 0 }));
+});
+
+test('bulletins link only while the installed version is below the fix', () => {
+  const tec = { kind: 'plugin', slug: 'the-events-calendar', fixedIn: '6.18.3' };
+  assert.ok(bulletinApplies(tec, { kind: 'plugin', slug: 'the-events-calendar', version: '6.18.2' }));
+  assert.ok(!bulletinApplies(tec, { kind: 'plugin', slug: 'the-events-calendar', version: '6.18.3.1' }));
+  assert.ok(!bulletinApplies(tec, { kind: 'plugin', slug: 'other', version: '1.0' }));
+  const php = { kind: 'php', fixedIn: ['8.2.35', '8.3.36', '8.4.27', '8.5.12'] };
+  assert.ok(bulletinApplies(php, { kind: 'php', version: '8.3.35' }));
+  assert.ok(!bulletinApplies(php, { kind: 'php', version: '8.3.36' }));
+  assert.ok(!bulletinApplies(php, { kind: 'php', version: '8.4.27' }));
+  assert.ok(bulletinApplies(php, { kind: 'php', version: '8.1.30' }), 'older branch with no fix');
 });

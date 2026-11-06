@@ -17,21 +17,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Unit tests
+      - name: Tests (logic + bulletins.json)
         run: node --test test/*.test.mjs
-      - name: Bulletins are valid JSON with required fields
-        run: |
-          node -e '
-            const b = JSON.parse(require("fs").readFileSync("site/bulletins.json", "utf8"));
-            const need = ["id","date","severity","title","summary","affects","check","fix","technical","sources"];
-            const ids = new Set();
-            for (const x of b) {
-              for (const k of need) if (!(k in x)) throw new Error(`${x.id||"?"} missing ${k}`);
-              if (ids.has(x.id)) throw new Error(`duplicate id ${x.id}`);
-              ids.add(x.id);
-              if (!["critical","high","medium","low"].includes(x.severity)) throw new Error(`${x.id}: bad severity`);
-              if (!/^\d{4}-\d{2}-\d{2}$/.test(x.date)) throw new Error(`${x.id}: bad date`);
-              for (const s of x.sources) if (!/^https:\/\//.test(s)) throw new Error(`${x.id}: source must be https`);
-            }
-            console.log(`${b.length} bulletins OK`);
-          '

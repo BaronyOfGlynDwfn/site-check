@@ -1,4 +1,4 @@
-import { parseSiteHealth, checkSite, classify, GROUPS, compareVersions } from './lib.js';
+import { parseSiteHealth, checkSite, classify, GROUPS, compareVersions, bulletinApplies } from './lib.js';
 
 // Every string from the paste or the lookup services goes through textContent,
 // never innerHTML.
@@ -50,9 +50,7 @@ const STATUS = { active: 'active', inactive: 'inactive', parent: 'parent theme' 
 let bulletins = [];
 
 function bulletinFor(item) {
-  return bulletins.filter((b) =>
-    (b.affects || []).some((a) => a.kind === item.kind && (!a.slug || a.slug === item.slug))
-  );
+  return bulletins.filter((b) => (b.affects || []).some((a) => bulletinApplies(a, item)));
 }
 
 function vulnList(vulns) {
@@ -81,7 +79,7 @@ function card(entry) {
   if (r.status && STATUS[r.status]) bits.push(STATUS[r.status]);
   if (r.version) bits.push(`installed ${r.version}`);
   if (r.latest && r.version && compareVersions(r.version, r.latest) < 0) bits.push(`latest ${r.latest}`);
-  if (r.closed) bits.push('closed on wordpress.org' + (r.closed.reason ? ` (${r.closed.reason})` : ''));
+  if (r.kind === 'php' && r.distroBuild) bits.push(`reported as ${r.raw}: your host's Linux distribution may patch PHP without changing the number`);
   if (r.kind === 'php' && r.endOfLife) bits.push(`PHP ${r.branch} is past end of life`);
 
   const exploited = (r.vulns || []).some((v) => v.exploited);

@@ -27,7 +27,7 @@ Known limits: WordPress sites only; server software other than PHP isn't checked
 
 ## Adding a bulletin
 
-Add an entry to `site/bulletins.json` (newest anywhere; the page sorts by date). Fields: `id`, `date` (YYYY-MM-DD), `severity` (critical/high/medium/low), `title`, `summary`, `affects` (`[{kind: plugin|theme|core|php, slug?, fixedIn}]`, which links checker results to the bulletin), `check` and `fix` (arrays of steps with exact wp-admin clicks), `help`, `technical`, `sources` (https URLs). CI validates the file.
+Add an entry to `site/bulletins.json` (newest anywhere; the page sorts by date). Fields: `id`, `date` (YYYY-MM-DD), `severity` (critical/high/medium/low), `title`, `summary`, `affects` (`[{kind: plugin|theme|core|php, slug?, fixedIn}]`, which links checker results to the bulletin), `check` and `fix` (arrays of steps with exact wp-admin clicks), `help`, `technical`, `sources` (https URLs). `test/bulletins.test.mjs` validates the file, in CI and before every Pages deploy.
 
 Write for a volunteer with admin access and no security background: what it is, who is affected, exact clicks, when to ask the kingdom webministry.
 
