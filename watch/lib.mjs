@@ -2,7 +2,7 @@
 // watched products (from the official CVE list and from WPVulnerability) and
 // turn them into plain-language bulletin drafts. No network access here.
 
-import { compareVersions, normName, contradictedBySources } from '../site/lib.js';
+import { compareVersions, normName, contradictedBySources, statedMaxVersion, fixedIn as fixedInOf } from '../site/lib.js';
 
 // ---------------------------------------------------------------------------
 // Reading an official CVE record (CVE JSON 5, as published in CVEProject/cvelistV5)
@@ -91,9 +91,9 @@ export function fromWpv(rec, kind, slug, name) {
   let through = op.max_operator === 'le' ? op.max_version : null;
   if (unfixed && contradictedBySources(rec, '999999')) {
     unfixed = false;
-    const stated = [...text.matchAll(/(?:<=\s*|up to,? and including,?\s*|through\s+)v?(\d+(?:\.\d+)+)/gi)].map((m) => m[1]);
-    through = stated.sort(compareVersions).pop() || null;
+    through = statedMaxVersion(text);
   }
+  const fix = unfixed ? null : fixedInOf(op);
   return {
     source: 'wpvulnerability',
     id: rec.uuid,
@@ -108,7 +108,7 @@ export function fromWpv(rec, kind, slug, name) {
     privileges: pr === 'N' || pr === 'L' || pr === 'H' ? pr : null,
     severity: SEV[impact.cvss?.severity] || null,
     exploited: Boolean(impact.ssvc?.kev) || impact.ssvc?.exploitation === 'active',
-    fixedIn: op.max_operator === 'lt' && op.max_version && !unfixed ? [op.max_version] : [],
+    fixedIn: fix ? [fix] : [],
     through,
     unfixed,
     published: (sources.map((s) => s.date).filter(Boolean).sort()[0] || '').slice(0, 10),
@@ -142,7 +142,7 @@ const EFFECTS = [
 
 // The official weakness category (CWE) wins when present: some databases
 // describe ordinary cross-site scripting as "allows Code Injection".
-function effectOf(v) {
+export function effectOf(v) {
   if (v.cwes.length) {
     const byCwe = EFFECTS.find((e) => e.re.test(v.cwes.join(' ')));
     if (byCwe) return byCwe;
@@ -195,10 +195,14 @@ export function draftBulletin(group, today) {
   // Records that only say "X or lower" get the product's current release as the
   // fix, if it is newer than X; if even the current release is affected, there
   // is no fix yet.
-  let fixed = kind === 'php' ? allFixes : allFixes.length ? allFixes[allFixes.length - 1] : null;
+  // PHP and WordPress core publish one fixed release per branch (8.3.36, 8.4.27 /
+  // 6.9.11, 7.1.4): keep them all so patched older branches aren't flagged.
+  const perBranch = kind === 'php' || (kind === 'core' && allFixes.length > 1);
+  let fixed = perBranch ? allFixes : allFixes.length ? allFixes[allFixes.length - 1] : null;
+  const newestFix = allFixes.length ? allFixes[allFixes.length - 1] : null;
   let fixIsCurrent = false;
   let anyUnfixed = vs.some((v) => v.unfixed);
-  if (kind !== 'php' && !anyUnfixed && through && group.current) {
+  if (!perBranch && !anyUnfixed && through && group.current) {
     if (compareVersions(group.current, through) > 0) {
       if (!fixed || compareVersions(fixed, through) <= 0) {
         fixed = group.current;
@@ -209,6 +213,7 @@ export function draftBulletin(group, today) {
     }
   }
   const exploited = vs.some((v) => v.exploited);
+  const shownFix = newestFix && !(through && compareVersions(newestFix, through) <= 0) ? newestFix : fixIsCurrent ? fixed : null;
 
   const thing = kind === 'core' ? 'WordPress itself' : kind === 'php' ? 'PHP, which runs on your host\'s server'
     : /^the /i.test(name) ? `${name} ${kind}` : `the ${name} ${kind}`;
@@ -221,18 +226,20 @@ export function draftBulletin(group, today) {
   let title;
   let check;
   let fix;
-  const affectedLine = through
-    ? `Version ${through} or lower is affected.`
-    : fixed && kind !== 'php' ? `Any version older than ${fixed} is affected.` : null;
+  const affectedLine = fixed && !fixIsCurrent && !perBranch
+    ? `Any version older than ${fixed} is affected.`
+    : through ? `Version ${through} or lower is affected.` : null;
 
   if (kind === 'core') {
-    const noFix = anyUnfixed || (!fixed && !through);
-    title = fixed ? `WordPress ${fixed}: security release` : noFix ? 'WordPress: security problem, no fix yet' : `WordPress: update past ${through}`;
+    const noFix = anyUnfixed || (!shownFix && !through);
+    title = shownFix ? `WordPress ${shownFix}: security release` : noFix ? 'WordPress: security problem, no fix yet' : `WordPress: update past ${through}`;
     check = ['Go to Dashboard → Updates.', 'The page says "You have the latest version of WordPress" when you are up to date.',
       through ? `Version ${through} or lower is affected. Older WordPress branches get their own fixed releases.` : null].filter(Boolean);
     fix = noFix
       ? ['There is no fixed release yet. Keep WordPress updated and watch this page.']
-      : ['Make a backup first.', `Go to Dashboard → Updates and click "Update to version ${fixed || '…'}" (the newest offered).`, 'Most sites update themselves automatically for security releases. Check anyway.'];
+      : ['Make a backup first.', `Go to Dashboard → Updates and click "Update to version ${shownFix || group.current || '…'}" (the newest offered).`,
+          perBranch ? `Sites staying on an older branch are fixed by ${allFixes.slice(0, -1).join(', ')}.` : null,
+          'Most sites update themselves automatically for security releases. Check anyway.'].filter(Boolean);
   } else if (kind === 'php') {
     title = 'PHP: ask your host to confirm PHP is patched';
     check = ['Go to Tools → Site Health → Info and open the "Server" section.', 'Read the "PHP version" line.',
@@ -268,7 +275,12 @@ export function draftBulletin(group, today) {
     severity: maxSeverity(vs),
     title,
     summary,
-    affects: [{ kind, ...(slug ? { slug } : {}), ...(fixed && !fixIsCurrent ? { fixedIn: fixed } : {}), ...(through ? { through } : {}) }],
+    affects: [{
+      kind,
+      ...(slug ? { slug } : {}),
+      ...(fixed && !fixIsCurrent && (!Array.isArray(fixed) || fixed.length) ? { fixedIn: fixed } : {}),
+      ...(through && (!fixed || fixIsCurrent) ? { through } : {}),
+    }],
     check,
     fix,
     help: 'If the update fails, or something looks wrong afterwards, contact your kingdom webministry.',
@@ -314,4 +326,22 @@ export function phpBranchWatched(f, branches) {
   if (f.kind !== 'php') return true;
   if (!f.fixedIn.length) return true;
   return f.fixedIn.some((v) => branches.some((b) => v.startsWith(b + '.')));
+}
+
+// Ids an existing set of bulletins already covers. Whole-id matches only:
+// "CVE-2026-10988" must not count as covered by "CVE-2026-109883".
+export function coveredIdSet(bulletins) {
+  return new Set(JSON.stringify(bulletins).match(/CVE-\d{4}-\d+|GHSA-[\w-]+/g) || []);
+}
+
+// Same product, same version bound and same kind of problem = the same bug seen
+// from another source. Without a version bound there's nothing safe to compare.
+export function fingerprintOf(f) {
+  const bound = f.through || f.fixedIn.join('+');
+  return bound ? `${f.kind}/${f.slug || ''}/${bound}/${effectOf(f).text}` : null;
+}
+
+// GitHub advisory patched_versions is range text (">= 7.1.4", "6.9.11, 7.0.8").
+export function patchedVersions(text) {
+  return String(text || '').match(/\d+(?:\.\d+)+/g) || [];
 }

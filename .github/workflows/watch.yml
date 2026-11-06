@@ -34,16 +34,17 @@ jobs:
         with:
           node-version: 22
 
-      - name: Continue the open drafts PR, or start fresh from main
+      - name: Start from main, keeping any drafts already waiting in the open PR
         id: branch
         run: |
           if [ "$(gh pr view watch/bulletins --json state --jq .state 2>/dev/null)" = OPEN ]; then
-            git checkout -B watch/bulletins origin/watch/bulletins
+            git show origin/watch/bulletins:site/bulletins.json > "$RUNNER_TEMP/pending.json"
             echo "existing=true" >> "$GITHUB_OUTPUT"
           else
-            git checkout -B watch/bulletins origin/main
             echo "existing=false" >> "$GITHUB_OUTPUT"
           fi
+          # Always rebuild on the current main so the drafts never go stale or conflict.
+          git checkout -B watch/bulletins origin/main
 
       - name: Load what the watcher has already seen
         run: |
@@ -54,7 +55,14 @@ jobs:
         id: watch
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node watch/watch.mjs --state "$RUNNER_TEMP/seen.json"
+        run: |
+          pending=""
+          if [ -f "$RUNNER_TEMP/pending.json" ]; then pending="--pending $RUNNER_TEMP/pending.json"; fi
+          node watch/watch.mjs --state "$RUNNER_TEMP/seen.json" $pending
+
+      - name: Report source problems
+        if: steps.watch.outputs.problems != ''
+        run: echo "::warning::${{ steps.watch.outputs.problems }} source problem(s) this run; see the log of the previous step"
 
       - name: Tests still pass with the drafts
         if: steps.watch.outputs.drafted != '0'
@@ -67,7 +75,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/bulletins.json
           git commit -m "Draft bulletins $(date -u '+%F %H:%M') UTC"
-          git push origin watch/bulletins
+          # The branch was rebuilt on main (pending drafts carried over), and a
+          # merged or closed PR's old branch may still exist, so replace it.
+          git push --force origin watch/bulletins
           title="Bulletin drafts $(date -u +%F)"
           if [ "${{ steps.watch.outputs.urgent }}" = true ]; then title="URGENT: $title"; fi
           if [ "${{ steps.branch.outputs.existing }}" = true ]; then

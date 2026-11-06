@@ -217,14 +217,20 @@ function summarize(rec, version) {
 // to the newest release, while every source it cites says "<= 2.6.5". When all
 // sources that state a version put it below what is installed, trust them.
 const STATED = /(?:<=\s*|up to,? and including,?\s*|through\s+)v?(\d+(?:\.\d+)+)/gi;
+
+// The highest "last affected" version a piece of advisory text states, or null.
+export function statedMaxVersion(text) {
+  const found = [...String(text || '').matchAll(STATED)].map((m) => m[1]);
+  return found.length ? found.sort(compareVersions).pop() : null;
+}
+
 export function contradictedBySources(rec, version) {
   if (String(rec.operator?.unfixed) !== '1') return false;
   const stated = [];
   for (const src of rec.source || []) {
-    const text = `${src.name || ''} ${src.description || ''}`;
-    const found = [...text.matchAll(STATED)].map((m) => m[1]);
-    if (!found.length) return false; // a source with no stated version: can't overrule
-    stated.push(found.sort(compareVersions).pop());
+    const max = statedMaxVersion(`${src.name || ''} ${src.description || ''}`);
+    if (!max) return false; // a source with no stated version: can't overrule
+    stated.push(max);
   }
   return stated.length > 0 && stated.every((v) => compareVersions(version, v) > 0);
 }
@@ -598,7 +604,8 @@ export function hostEmail(php) {
 // the installed branch, and treat older unlisted branches as affected.
 export function bulletinApplies(a, item) {
   if (a.kind !== item.kind || (a.slug && a.slug !== item.slug)) return false;
-  if (item.version && a.through && compareVersions(item.version, a.through) > 0) return false;
+  // "through" (last affected version) is only used when no fixed version is known.
+  if (item.version && a.through && !a.fixedIn && compareVersions(item.version, a.through) > 0) return false;
   if (!item.version || !a.fixedIn) return true;
   const fixes = [].concat(a.fixedIn);
   if (fixes.length === 1) return compareVersions(item.version, fixes[0]) < 0;

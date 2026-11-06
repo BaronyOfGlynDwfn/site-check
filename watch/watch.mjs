@@ -15,7 +15,7 @@
 // `urgent=<true|false>` to $GITHUB_OUTPUT and a PR body to watch/.pr-body.md.
 
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
-import { matchCve, fromWpv, groupFindings, draftBulletin, isUrgent, phpBranchWatched } from './lib.mjs';
+import { matchCve, fromWpv, groupFindings, draftBulletin, isUrgent, phpBranchWatched, coveredIdSet, fingerprintOf, patchedVersions } from './lib.mjs';
 
 const args = process.argv.slice(2);
 const opt = (name) => {
@@ -40,6 +40,8 @@ const productKey = (kind, slug) => `${kind}/${slug}`;
 const silent = new Set();
 const fingerprints = new Set(state.fingerprints || []);
 const today = new Date().toISOString().slice(0, 10);
+
+const problems = []; // non-fatal source failures, reported at the end
 
 const UA = { 'User-Agent': 'webminister-site-check-watcher (+https://github.com/BaronyOfGlynDwfn/site-check)' };
 
@@ -71,19 +73,38 @@ async function pool(items, limit, fn) {
 
 // --- 1. Official CVE list ----------------------------------------------------
 async function fromCveList() {
-  const log = await getJson('https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/deltaLog.json');
-  if (!Array.isArray(log)) throw new Error('CVE deltaLog has an unexpected format');
+  let log;
+  try {
+    log = await getJson('https://raw.githubusercontent.com/CVEProject/cvelistV5/main/cves/deltaLog.json');
+    if (!Array.isArray(log)) throw new Error('unexpected format');
+  } catch (e) {
+    problems.push(`CVE list: ${e.message}`);
+    return { found: [], latest: state.cveSince }; // read from the same point next time
+  }
   const since = opt('--since') || state.cveSince || new Date(Date.now() - 36 * 3600e3).toISOString();
   const fresh = log.filter((e) => e.fetchTime > since);
-  const latest = log.reduce((m, e) => (e.fetchTime > m ? e.fetchTime : m), since);
+  let latest = log.reduce((m, e) => (e.fetchTime > m ? e.fetchTime : m), since);
   const links = new Map();
-  for (const e of fresh) for (const n of e.new || []) links.set(n.cveId, n.githubLink);
+  const loggedAt = new Map();
+  for (const e of fresh) for (const n of e.new || []) {
+    links.set(n.cveId, n.githubLink);
+    if (!loggedAt.has(n.cveId) || e.fetchTime < loggedAt.get(n.cveId)) loggedAt.set(n.cveId, e.fetchTime);
+  }
   const ids = [...links.keys()];
   console.log(`CVE list: ${ids.length} new CVEs since ${since}`);
+  const failed = [];
   const records = await pool(ids, 8, (id) => getJson(links.get(id)).catch((err) => {
-    console.warn(`  skip ${id}: ${err.message}`);
+    console.warn(`  could not fetch ${id}: ${err.message}`);
+    failed.push(id);
     return null;
   }));
+  if (failed.length) {
+    // Read the log again from just before the first failure next time, so a
+    // record that failed to download is retried rather than lost.
+    const first = failed.map((id) => loggedAt.get(id)).sort()[0];
+    latest = new Date(Date.parse(first) - 1).toISOString();
+    problems.push(`${failed.length} CVE record(s) failed to download; will retry from ${latest}`);
+  }
   const found = records.map((r) => (r ? matchCve(r, watch) : null)).filter(Boolean)
     .filter((f) => phpBranchWatched(f, watch.php || []));
   return { found, latest };
@@ -97,7 +118,13 @@ async function fromWpvList() {
     ...watch.themes.map((t) => ({ kind: 'theme', ...t })),
   ];
   await pool(targets, 5, async (t) => {
-    const data = (await getJson(`https://www.wpvulnerability.net/${t.kind}/${encodeURIComponent(t.slug)}/`))?.data;
+    let data;
+    try {
+      data = (await getJson(`https://www.wpvulnerability.net/${t.kind}/${encodeURIComponent(t.slug)}/`))?.data;
+    } catch (e) {
+      problems.push(`WPVulnerability ${t.kind} ${t.slug}: ${e.message}`);
+      return; // not added to knownProducts, so a later success isn't treated as a new product
+    }
     const isNewProduct = state.products && !knownProducts.has(productKey(t.kind, t.slug));
     for (const rec of data?.vulnerability || []) {
       const f = fromWpv(rec, t.kind, t.slug, t.name);
@@ -107,7 +134,13 @@ async function fromWpvList() {
     knownProducts.add(productKey(t.kind, t.slug));
   });
   for (const b of watch.php || []) {
-    const data = (await getJson(`https://www.wpvulnerability.net/php/${b}.0/`))?.data;
+    let data;
+    try {
+      data = (await getJson(`https://www.wpvulnerability.net/php/${b}.0/`))?.data;
+    } catch (e) {
+      problems.push(`WPVulnerability PHP ${b}: ${e.message}`);
+      continue;
+    }
     for (const rec of data?.vulnerability || []) {
       const f = fromWpv(rec, 'php', null, 'PHP');
       if (f.fixedIn.every((v) => v.startsWith(b + '.'))) found.push(f);
@@ -121,7 +154,13 @@ async function fromWpvList() {
 async function fromCoreAdvisories() {
   if (!watch.core) return [];
   const headers = process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {};
-  const list = await getJson('https://api.github.com/repos/WordPress/wordpress-develop/security-advisories?per_page=50&sort=published&direction=desc', headers);
+  let list;
+  try {
+    list = await getJson('https://api.github.com/repos/WordPress/wordpress-develop/security-advisories?per_page=50&sort=published&direction=desc', headers);
+  } catch (e) {
+    problems.push(`WordPress core advisories: ${e.message}`);
+    return [];
+  }
   return (list || []).map((a) => ({
     source: 'github-advisory',
     id: a.ghsa_id,
@@ -135,7 +174,8 @@ async function fromCoreAdvisories() {
     privileges: null,
     severity: a.severity && a.severity !== 'unknown' ? a.severity : null,
     exploited: false,
-    fixedIn: [...new Set((a.vulnerabilities || []).flatMap((v) => String(v.patched_versions || '').split(',').map((x) => x.trim()).filter(Boolean)))],
+    // patched_versions is range text such as ">= 7.1.4" or "6.9.11, 7.0.8": keep the version numbers.
+    fixedIn: [...new Set((a.vulnerabilities || []).flatMap((v) => patchedVersions(v.patched_versions)))],
     through: null,
     unfixed: false,
     published: (a.published_at || '').slice(0, 10),
@@ -143,9 +183,7 @@ async function fromCoreAdvisories() {
   }));
 }
 
-// Same product + same last-affected (or fixed) version = the same update fixes it,
-// so a CVE number that arrives later for an already-drafted bug is not drafted again.
-const fingerprint = (f) => `${f.kind}/${f.slug || ''}/${f.through || f.fixedIn.join('+') || '?'}`;
+const fingerprint = fingerprintOf;
 
 // --sources cve,wpv,core (default all) — mainly for testing one source at a time.
 const sources = (opt('--sources') || 'cve,wpv,core').split(',');
@@ -155,7 +193,7 @@ const [cve, wpv, core] = await Promise.all([
   sources.includes('core') ? fromCoreAdvisories() : [],
 ]);
 const all = [...cve.found, ...wpv, ...core];
-const isNew = (f) => !seen.has(f.id) && !f.cves.some((c) => seen.has(c)) && !fingerprints.has(fingerprint(f));
+const isNew = (f) => !seen.has(f.id) && !f.cves.some((c) => seen.has(c)) && !(fingerprint(f) && fingerprints.has(fingerprint(f)));
 const fresh = all.filter((f) => isNew(f) && !silent.has(f.id));
 
 const remember = () => {
@@ -163,7 +201,7 @@ const remember = () => {
     seen.add(f.id);
     f.cves.forEach((c) => seen.add(c));
   }
-  for (const f of fresh) fingerprints.add(fingerprint(f));
+  for (const f of fresh) if (fingerprint(f)) fingerprints.add(fingerprint(f));
   const next = {
     ids: [...seen].sort(),
     fingerprints: [...fingerprints].sort(),
@@ -185,9 +223,17 @@ if (flag('--baseline')) {
 }
 
 const bulletins = JSON.parse(readFileSync(bulletinsPath, 'utf8'));
-// Anything an existing bulletin already names (hand-written or merged) is covered.
-const covered = JSON.stringify(bulletins);
-const groups = groupFindings(fresh.filter((f) => !f.cves.some((c) => covered.includes(c)) && !covered.includes(f.id)), watch);
+// Drafts already waiting in the open PR (--pending <its bulletins.json>): kept,
+// with any wording edits, and re-applied on top of the current main.
+const pendingPath = opt('--pending');
+const onMain = new Set(bulletins.map((b) => b.id));
+const pending = pendingPath && existsSync(pendingPath)
+  ? JSON.parse(readFileSync(pendingPath, 'utf8')).filter((b) => !onMain.has(b.id))
+  : [];
+// Anything an existing or pending bulletin already names is covered.
+const coveredIds = coveredIdSet([...pending, ...bulletins]);
+const isCovered = (f) => f.cves.some((c) => coveredIds.has(c)) || coveredIds.has(f.id);
+const groups = groupFindings(fresh.filter((f) => !isCovered(f)), watch);
 
 // The product's current release, so a draft can say "update to 6.18.3.1".
 async function currentVersion(g) {
@@ -203,7 +249,7 @@ async function currentVersion(g) {
   return null;
 }
 await pool(groups, 5, async (g) => { g.current = await currentVersion(g); });
-const ids = new Set(bulletins.map((b) => b.id));
+const ids = new Set([...pending, ...bulletins].map((b) => b.id));
 const drafts = [];
 for (const g of groups) {
   const d = draftBulletin(g, today);
@@ -219,8 +265,10 @@ console.log(`New findings: ${fresh.length}; drafted ${drafts.length} bulletin(s)
 for (const { draft } of drafts) console.log(`  [${draft.severity}] ${draft.title}`);
 
 if (!flag('--dry-run')) {
+  if (drafts.length || pending.length) {
+    writeFileSync(bulletinsPath, JSON.stringify([...drafts.map((d) => d.draft), ...pending, ...bulletins], null, 2) + '\n');
+  }
   if (drafts.length) {
-    writeFileSync(bulletinsPath, JSON.stringify([...drafts.map((d) => d.draft), ...bulletins], null, 2) + '\n');
     const body = [
       urgent ? '**URGENT: at least one of these can be used without logging in, is rated critical, or is already being attacked.**\n' : '',
       'The watcher found new security problems for products on the watchlist and drafted these bulletins. They were written from templates, so check the wording before merging. Merging publishes them.',
@@ -240,3 +288,9 @@ if (!flag('--dry-run')) {
 }
 out('drafted', drafts.length);
 out('urgent', urgent);
+out('pending', pending.length);
+if (problems.length) {
+  console.warn(`\n${problems.length} source problem(s) this run (other sources were still checked):`);
+  for (const p of problems) console.warn('  - ' + p);
+  out('problems', problems.length);
+}

@@ -119,3 +119,41 @@ test('a duplicate from WPVulnerability adds "Unauthenticated" to the CVE-only re
   assert.ok(isUrgent(g.vulns));
   assert.ok(d.sources.includes('https://www.wordfence.com/x'));
 });
+
+import { coveredIdSet, fingerprintOf, patchedVersions } from '../watch/lib.mjs';
+
+test('"covered" matches whole CVE ids, not prefixes', () => {
+  const ids = coveredIdSet([{ technical: 'CVE-2026-109883: something' }]);
+  assert.ok(ids.has('CVE-2026-109883'));
+  assert.ok(!ids.has('CVE-2026-10988'));
+});
+
+test('fixed version wins over a lower "through" when scoping a bulletin', () => {
+  const a = { ...matchCve(cve('2026-54851'), watch), id: 'A', cves: ['CVE-A'], through: null, fixedIn: ['5.0'] };
+  const b = { ...matchCve(cve('2026-54851'), watch), id: 'B', cves: ['CVE-B'], through: '3.1', fixedIn: [] };
+  const [g] = groupFindings([a, b], watch);
+  g.current = '5.0';
+  const d = draftBulletin(g, '2026-11-07');
+  assert.deepEqual(d.affects, [{ kind: 'plugin', slug: 'wpforms-lite', fixedIn: '5.0' }]);
+  assert.ok(bulletinApplies(d.affects[0], { kind: 'plugin', slug: 'wpforms-lite', version: '4.0' }), '4.0 is still exposed to A');
+  assert.ok(d.check.includes('Any version older than 5.0 is affected.'));
+});
+
+test('core advisories keep one fix per branch, so patched older branches are not flagged', () => {
+  const v = { ...matchCve(cve('2026-119977'), watch), id: 'GHSA-x', cves: [], through: null, fixedIn: patchedVersions('>= 6.9.11, 7.0.8, 7.1.4') };
+  assert.deepEqual(v.fixedIn, ['6.9.11', '7.0.8', '7.1.4']);
+  const [g] = groupFindings([v], watch);
+  g.current = '7.1.4';
+  const d = draftBulletin(g, '2026-11-07');
+  assert.equal(d.title, 'WordPress 7.1.4: security release');
+  assert.ok(!bulletinApplies(d.affects[0], { kind: 'core', version: '6.9.11' }));
+  assert.ok(bulletinApplies(d.affects[0], { kind: 'core', version: '6.9.10' }));
+  assert.ok(!bulletinApplies(d.affects[0], { kind: 'core', version: '7.1.4' }));
+});
+
+test('fingerprints keep different kinds of bug apart and skip unbounded records', () => {
+  const xss = matchCve(cve('2026-54851'), watch);
+  const rce = { ...xss, cwes: ['CWE-94'] };
+  assert.notEqual(fingerprintOf(xss), fingerprintOf(rce));
+  assert.equal(fingerprintOf({ ...xss, through: null, fixedIn: [] }), null);
+});

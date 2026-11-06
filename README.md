@@ -34,7 +34,7 @@ Two scheduled workflows run on GitHub (free for public repositories):
   2. WPVulnerability (adds Wordfence/Patchstack/WPScan entries, sometimes weeks before a CVE number exists),
   3. WordPress core's GitHub security advisories (core releases often have no CVE).
 
-  New problems are grouped per product and drafted from templates (`watch/lib.mjs`) into `site/bulletins.json` on the `watch/bulletins` branch, in one open PR titled "Bulletin drafts …" ("URGENT: …" when one can be used without a login, is rated critical, or is being exploited). Later runs add to that PR. Merging publishes the drafts. Nothing is published without a merge.
+  New problems are grouped per product and drafted from templates (`watch/lib.mjs`) into `site/bulletins.json` on the `watch/bulletins` branch, in one open PR titled "Bulletin drafts …" ("URGENT: …" when one can be used without a login, is rated critical, or is being exploited). Later runs rebuild that branch on the current `main`, carrying over the drafts already in the PR (including wording edits to `site/bulletins.json`), and add new ones. Merging publishes the drafts. Nothing is published without a merge. Edit only `site/bulletins.json` on that branch: other changes there are replaced on the next run that finds something new.
 
   What the watcher has seen is kept in `seen.json` on the unpublished `watch-state` branch, so closing a drafts PR without merging doesn't bring the same items back. To make it forget one, remove its id there.
 - **`health.yml`, daily.** `watch/health.mjs` runs a real check of the sample site against the live services and checks the CVE list is still updating. A failed run means the checker or the watcher has stopped working; GitHub emails about failed scheduled runs.
