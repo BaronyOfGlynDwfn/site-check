@@ -598,6 +598,7 @@ export function hostEmail(php) {
 // the installed branch, and treat older unlisted branches as affected.
 export function bulletinApplies(a, item) {
   if (a.kind !== item.kind || (a.slug && a.slug !== item.slug)) return false;
+  if (item.version && a.through && compareVersions(item.version, a.through) > 0) return false;
   if (!item.version || !a.fixedIn) return true;
   const fixes = [].concat(a.fixedIn);
   if (fixes.length === 1) return compareVersions(item.version, fixes[0]) < 0;

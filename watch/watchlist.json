@@ -1,0 +1,35 @@
+{
+  "_about": "Products the watcher checks twice a day. 'name' is the name webministers see in their WordPress admin (Site Health / Plugins screen); 'slug' is the wordpress.org folder name. To add one, find it at wordpress.org/plugins/<slug>/ and add a line.",
+  "core": true,
+  "php": ["8.2", "8.3", "8.4", "8.5"],
+  "plugins": [
+    { "slug": "akismet", "name": "Akismet Anti-spam: Spam Protection" },
+    { "slug": "all-in-one-wp-security-and-firewall", "name": "All-In-One Security (AIOS) – Security and Firewall" },
+    { "slug": "bbpress", "name": "bbPress" },
+    { "slug": "classic-editor", "name": "Classic Editor" },
+    { "slug": "contact-form-7", "name": "Contact Form 7" },
+    { "slug": "content-control", "name": "Content Control" },
+    { "slug": "dreamhost-automated-migration", "name": "DreamHost Automated Migration" },
+    { "slug": "duplicate-page", "name": "Duplicate Page" },
+    { "slug": "elementor", "name": "Elementor" },
+    { "slug": "jetpack", "name": "Jetpack" },
+    { "slug": "knowledgebase", "name": "WebberZone Knowledge Base" },
+    { "slug": "mainwp-child", "name": "MainWP Child" },
+    { "slug": "php-compatibility-checker", "name": "PHP Compatibility Checker" },
+    { "slug": "really-simple-ssl", "name": "Really Simple Security" },
+    { "slug": "the-events-calendar", "name": "The Events Calendar" },
+    { "slug": "themeisle-companion", "name": "Orbit Fox Companion" },
+    { "slug": "updraftplus", "name": "UpdraftPlus - Backup/Restore" },
+    { "slug": "wordfence", "name": "Wordfence Security" },
+    { "slug": "wordpress-seo", "name": "Yoast SEO" },
+    { "slug": "wp-mail-smtp", "name": "WP Mail SMTP" },
+    { "slug": "wp-super-cache", "name": "WP Super Cache" },
+    { "slug": "wpforms-lite", "name": "WPForms Lite" }
+  ],
+  "themes": [
+    { "slug": "hestia", "name": "Hestia" },
+    { "slug": "neve", "name": "Neve" },
+    { "slug": "twentytwentyfive", "name": "Twenty Twenty-Five" },
+    { "slug": "twentytwentyfour", "name": "Twenty Twenty-Four" }
+  ]
+}

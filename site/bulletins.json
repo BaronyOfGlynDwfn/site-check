@@ -1,11 +1,79 @@
 [
   {
+    "id": "2026-11-06-elementor",
+    "date": "2026-11-06",
+    "severity": "high",
+    "title": "Elementor: update to 4.3.6",
+    "summary": "Two new security problems in the Elementor plugin. The most serious could let someone plant harmful code in pages that visitors then load.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "elementor",
+        "through": "4.3.5"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Elementor\" and read the version number under its name.",
+      "Version 4.3.5 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Elementor\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-109883 and CVE-2026-109884: cross-site scripting in Elementor Website Builder 4.3.5 and earlier (Patchstack). Fixed after 4.3.5; 4.3.6 is current.",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-109883",
+      "https://www.cve.org/CVERecord?id=CVE-2026-109884",
+      "https://wordpress.org/plugins/elementor/"
+    ]
+  },
+  {
+    "id": "2026-11-06-wpforms-lite",
+    "date": "2026-11-06",
+    "severity": "high",
+    "title": "WPForms Lite: update to 2.0.4",
+    "summary": "A security problem in the WPForms Lite plugin lets anyone on the internet, with no login, plant harmful code in pages that visitors then load.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "wpforms-lite",
+        "through": "2.0.3"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"WPForms Lite\" and read the version number under its name.",
+      "Version 2.0.3 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"WPForms Lite\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-54851 (Wordfence: \"WPForms <= 2.0.3 - Unauthenticated Stored Cross-Site Scripting\", CVSS 7.1). Fixed after 2.0.3; 2.0.4 is current.",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-54851",
+      "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/wpforms-lite/",
+      "https://wordpress.org/plugins/wpforms-lite/"
+    ]
+  },
+  {
     "id": "2026-11-events-calendar",
     "date": "2026-11-06",
     "severity": "medium",
     "title": "The Events Calendar: update to 6.18.3 or later",
     "summary": "Four security problems in The Events Calendar plugin let anyone with a Contributor account or higher plant harmful code in pages that visitors then load. Most An Tir sites use this plugin for their calendar.",
-    "affects": [{ "kind": "plugin", "slug": "the-events-calendar", "fixedIn": "6.18.3" }],
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "the-events-calendar",
+        "fixedIn": "6.18.3"
+      }
+    ],
     "check": [
       "Go to Plugins → Installed Plugins.",
       "Find \"The Events Calendar\" and read the version number under its name.",
@@ -29,7 +97,12 @@
     "severity": "high",
     "title": "WordPress 7.1.4 security release",
     "summary": "WordPress 7.1.4 fixes eleven security problems. The most serious can let an attacker take over a site while it is in the middle of updating WordPress itself. Attackers began probing for it within hours of the release.",
-    "affects": [{ "kind": "core", "fixedIn": "7.1.4" }],
+    "affects": [
+      {
+        "kind": "core",
+        "fixedIn": "7.1.4"
+      }
+    ],
     "check": [
       "Go to Dashboard → Updates.",
       "The page says \"You have the latest version of WordPress\" if you are on 7.1.4 or later.",
@@ -53,7 +126,17 @@
     "severity": "critical",
     "title": "PHP \"php2shell\": ask your host to confirm PHP is patched",
     "summary": "Two flaws in PHP itself let anyone on the internet run their own code on a server, with no login needed. They are being actively attacked. PHP runs on your host's server, so your host has to fix it.",
-    "affects": [{ "kind": "php", "fixedIn": ["8.2.35", "8.3.36", "8.4.27", "8.5.12"] }],
+    "affects": [
+      {
+        "kind": "php",
+        "fixedIn": [
+          "8.2.35",
+          "8.3.36",
+          "8.4.27",
+          "8.5.12"
+        ]
+      }
+    ],
     "check": [
       "Go to Tools → Site Health → Info and open the \"Server\" section.",
       "Read the \"PHP version\" line.",
