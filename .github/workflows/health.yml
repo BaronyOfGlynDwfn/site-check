@@ -1,0 +1,23 @@
+name: Daily health check
+
+# Runs a real check against the live lookup services. A failure here means the
+# public checker or the watcher has stopped working; GitHub emails about failed
+# scheduled runs.
+on:
+  schedule:
+    - cron: '30 15 * * *'   # 07:30 Pacific standard time
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node watch/health.mjs

@@ -1,0 +1,100 @@
+name: Watch for new vulnerabilities
+
+# Twice a day: read the official CVE list, WPVulnerability and WordPress core's
+# advisories for everything in watch/watchlist.json. New problems become
+# drafted bulletins in one open PR ("watch/bulletins") for a person to review.
+# Nothing is published until that PR is merged.
+#
+# What the watcher has already seen is kept on the unpublished `watch-state`
+# branch, so closing a drafts PR without merging does not bring the items back.
+on:
+  schedule:
+    - cron: '0 2,14 * * *'   # 06:00 and 18:00 Pacific standard time
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Start from main, keeping any drafts already waiting in the open PR
+        id: branch
+        run: |
+          if [ "$(gh pr view watch/bulletins --json state --jq .state 2>/dev/null)" = OPEN ]; then
+            git show origin/watch/bulletins:site/bulletins.json > "$RUNNER_TEMP/pending.json"
+            echo "existing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "existing=false" >> "$GITHUB_OUTPUT"
+          fi
+          # Always rebuild on the current main so the drafts never go stale or conflict.
+          git checkout -B watch/bulletins origin/main
+
+      - name: Load what the watcher has already seen
+        run: |
+          git fetch origin watch-state
+          git show origin/watch-state:seen.json > "$RUNNER_TEMP/seen.json"
+
+      - name: Look for new vulnerabilities
+        id: watch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          pending=""
+          if [ -f "$RUNNER_TEMP/pending.json" ]; then pending="--pending $RUNNER_TEMP/pending.json"; fi
+          node watch/watch.mjs --state "$RUNNER_TEMP/seen.json" $pending
+
+      - name: Report source problems
+        if: steps.watch.outputs.problems != ''
+        run: echo "::warning::${{ steps.watch.outputs.problems }} source problem(s) this run; see the log of the previous step"
+
+      - name: Tests still pass with the drafts
+        if: steps.watch.outputs.drafted != '0'
+        run: node --test test/*.test.mjs
+
+      - name: Open or update the drafts PR
+        if: steps.watch.outputs.drafted != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/bulletins.json
+          git commit -m "Draft bulletins $(date -u '+%F %H:%M') UTC"
+          # The branch was rebuilt on main (pending drafts carried over), and a
+          # merged or closed PR's old branch may still exist, so replace it.
+          git push --force origin watch/bulletins
+          title="Bulletin drafts $(date -u +%F)"
+          if [ "${{ steps.watch.outputs.urgent }}" = true ]; then title="URGENT: $title"; fi
+          if [ "${{ steps.branch.outputs.existing }}" = true ]; then
+            gh pr comment watch/bulletins --body-file watch/.pr-body.md
+            if [ "${{ steps.watch.outputs.urgent }}" = true ]; then gh pr edit watch/bulletins --title "$title"; fi
+          else
+            gh pr create --base main --head watch/bulletins --title "$title" --body-file watch/.pr-body.md
+            gh pr edit watch/bulletins --add-assignee Helo3301 --add-reviewer Helo3301 || echo "could not assign"
+          fi
+
+      - name: Save what the watcher has seen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git worktree add --detach "$RUNNER_TEMP/state" origin/watch-state
+          cp "$RUNNER_TEMP/seen.json" "$RUNNER_TEMP/state/seen.json"
+          cd "$RUNNER_TEMP/state"
+          git add seen.json
+          git commit -m "Watcher state $(date -u '+%F %H:%M') UTC" || exit 0
+          git push origin HEAD:watch-state

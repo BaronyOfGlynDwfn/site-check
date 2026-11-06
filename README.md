@@ -25,6 +25,24 @@ Only names and version numbers leave the browser. Paths, user counts and setting
 
 Known limits: WordPress sites only; server software other than PHP isn't checked (hosts patch distro packages without changing version numbers, so version matching gives false alarms); WPVulnerability's `closed` flag and `latest` field are ignored (unreliable / a timestamp).
 
+## Keeping it current
+
+Two scheduled workflows run on GitHub (free for public repositories):
+
+- **`watch.yml`, twice a day (06:00 and 18:00 Pacific standard time).** `watch/watch.mjs` reads three sources for everything in `watch/watchlist.json` (WordPress, PHP branches, plugins, themes):
+  1. the official CVE list (`CVEProject/cvelistV5`'s 30-day `deltaLog.json`); WordPress plugin CVEs name the exact wordpress.org slug and affected versions,
+  2. WPVulnerability (adds Wordfence/Patchstack/WPScan entries, sometimes weeks before a CVE number exists),
+  3. WordPress core's GitHub security advisories (core releases often have no CVE).
+
+  New problems are grouped per product and drafted from templates (`watch/lib.mjs`) into `site/bulletins.json` on the `watch/bulletins` branch, in one open PR titled "Bulletin drafts …" ("URGENT: …" when one can be used without a login, is rated critical, or is being exploited). Later runs rebuild that branch on the current `main`, carrying over the drafts already in the PR (including wording edits to `site/bulletins.json`), and add new ones. Merging publishes the drafts. Nothing is published without a merge. Edit only `site/bulletins.json` on that branch: other changes there are replaced on the next run that finds something new.
+
+  What the watcher has seen is kept in `seen.json` on the unpublished `watch-state` branch, so closing a drafts PR without merging doesn't bring the same items back. To make it forget one, remove its id there.
+- **`health.yml`, daily.** `watch/health.mjs` runs a real check of the sample site against the live services and checks the CVE list is still updating. A failed run means the checker or the watcher has stopped working; GitHub emails about failed scheduled runs.
+
+Repository setting needed: Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests".
+
+To watch another plugin, add `{ "slug": "<wordpress.org slug>", "name": "<name shown in WordPress admin>" }` to `watch/watchlist.json`. Its existing history is recorded as seen on the next run without drafting anything; only problems published after that become bulletins (the checker already reports the older ones to anyone who runs it).
+
 ## Adding a bulletin
 
 Add an entry to `site/bulletins.json` (newest anywhere; the page sorts by date). Fields: `id`, `date` (YYYY-MM-DD), `severity` (critical/high/medium/low), `title`, `summary`, `affects` (`[{kind: plugin|theme|core|php, slug?, fixedIn}]`, which links checker results to the bulletin), `check` and `fix` (arrays of steps with exact wp-admin clicks), `help`, `technical`, `sources` (https URLs). `test/bulletins.test.mjs` validates the file, in CI and before every Pages deploy.
