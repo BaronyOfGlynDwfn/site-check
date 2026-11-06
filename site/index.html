@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Webminister Site Check</title>
+  <meta name="description" content="Check whether known security problems affect your WordPress site, with plain steps to fix them.">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <p class="eyebrow">For webministers</p>
+      <h1>Webminister Site Check</h1>
+      <p class="lede">Find out whether known security problems affect your WordPress site, and get plain steps to fix them.</p>
+      <nav class="tabs" aria-label="Sections">
+        <a href="#check">Check my site</a>
+        <a href="#bulletins">Bulletins</a>
+        <a href="#about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="check" aria-labelledby="check-h">
+      <h2 id="check-h">Check my site</h2>
+      <ol class="how">
+        <li>In your WordPress admin, go to <strong>Tools → Site Health</strong>, then the <strong>Info</strong> tab.</li>
+        <li>Click <strong>Copy site info to clipboard</strong>.</li>
+        <li>Paste it below and press <strong>Check</strong>.</li>
+      </ol>
+      <p class="privacy">What you paste stays in your browser. Only the names and version numbers of WordPress, PHP, your plugins and your themes are sent to two public lookup services (wordpress.org and WPVulnerability). Server paths, user counts and settings are never sent.</p>
+      <form id="check-form">
+        <label for="paste" class="sr-only">Site Health info</label>
+        <textarea id="paste" rows="10" spellcheck="false" placeholder="### wp-core ###&#10;&#10;version: 7.1.4&#10;…"></textarea>
+        <div class="actions">
+          <button type="submit" id="go">Check</button>
+          <button type="button" id="clear" class="quiet">Clear</button>
+          <span id="progress" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+      <div id="error" class="error" role="alert" hidden></div>
+      <div id="results" aria-live="polite"></div>
+    </section>
+
+    <section id="bulletins" aria-labelledby="bulletins-h">
+      <h2 id="bulletins-h">Bulletins</h2>
+      <p class="muted">Problems worth knowing about, newest first, each with how to check and how to fix. Sites that aren't on WordPress can still use these.</p>
+      <div id="bulletin-list"><p class="muted">Loading…</p></div>
+    </section>
+
+    <section id="about" aria-labelledby="about-h">
+      <h2 id="about-h">About</h2>
+      <p>Made by the webministry of the Barony of Glyn Dwfn so that webministers can check their own sites without needing a security background. This is not an official publication of the Society for Creative Anachronism or the Kingdom of An Tir.</p>
+      <p>The checker only knows about problems that have been published. A clean result means nothing <em>known</em> applies, not that a site is guaranteed safe. Keep backups, keep things updated, and remove what you don't use.</p>
+      <p>Vulnerability data from <a href="https://www.wpvulnerability.com/">WPVulnerability</a> (public domain, CC0). Plugin, theme and WordPress version information from <a href="https://wordpress.org/">WordPress.org</a>.</p>
+      <p>This page was built, and its bulletins drafted, with help from Claude, an AI assistant made by Anthropic. A person reviews each bulletin before it is published.</p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Questions or corrections: <a href="https://github.com/BaronyOfGlynDwfn/site-check">github.com/BaronyOfGlynDwfn/site-check</a></p>
+  </footer>
+</body>
+</html>
