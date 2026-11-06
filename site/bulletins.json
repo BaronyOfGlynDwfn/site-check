@@ -1,0 +1,74 @@
+[
+  {
+    "id": "2026-11-events-calendar",
+    "date": "2026-11-06",
+    "severity": "medium",
+    "title": "The Events Calendar: update to 6.18.3 or later",
+    "summary": "Four security problems in The Events Calendar plugin let anyone with a Contributor account or higher plant harmful code in pages that visitors then load. Most An Tir sites use this plugin for their calendar.",
+    "affects": [{ "kind": "plugin", "slug": "the-events-calendar", "fixedIn": "6.18.3" }],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"The Events Calendar\" and read the version number under its name.",
+      "Version 6.18.2 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under The Events Calendar.",
+      "Open your calendar page afterwards to check it still shows events."
+    ],
+    "help": "If the update fails, or your calendar looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-119367, CVE-2026-119368, CVE-2026-119369 and CVE-2026-119370 (stored cross-site scripting, Contributor+). Fixed in 6.18.3, published 2026-10-30; 6.18.3.1 added further hardening on 2026-11-05.",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-119370",
+      "https://wordpress.org/plugins/the-events-calendar/#developers"
+    ]
+  },
+  {
+    "id": "2026-10-wordpress-714",
+    "date": "2026-10-29",
+    "severity": "high",
+    "title": "WordPress 7.1.4 security release",
+    "summary": "WordPress 7.1.4 fixes eleven security problems. The most serious can let an attacker take over a site while it is in the middle of updating WordPress itself. Attackers began probing for it within hours of the release.",
+    "affects": [{ "kind": "core", "fixedIn": "7.1.4" }],
+    "check": [
+      "Go to Dashboard → Updates.",
+      "The page says \"You have the latest version of WordPress\" if you are on 7.1.4 or later.",
+      "Most sites updated themselves automatically. Check anyway."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "Go to Dashboard → Updates and click \"Update to version 7.1.4\" (or newer).",
+      "Older WordPress branches got their own fixed releases (for example 7.0.8 and 6.9.11), but moving to the newest version is best."
+    ],
+    "help": "If the Update button is missing, your host may manage WordPress for you. Ask them to confirm you are on a fixed version.",
+    "technical": "CVE-2026-119977: race condition during core updates leading to remote code execution (WordPress 4.7 to 7.1.3). Plus stored XSS, information disclosure and permission fixes. Released 2026-10-28.",
+    "sources": [
+      "https://github.com/WordPress/wordpress-develop/security/advisories",
+      "https://www.cve.org/CVERecord?id=CVE-2026-119977"
+    ]
+  },
+  {
+    "id": "2026-10-php-php2shell",
+    "date": "2026-10-21",
+    "severity": "critical",
+    "title": "PHP \"php2shell\": ask your host to confirm PHP is patched",
+    "summary": "Two flaws in PHP itself let anyone on the internet run their own code on a server, with no login needed. They are being actively attacked. PHP runs on your host's server, so your host has to fix it.",
+    "affects": [{ "kind": "php", "fixedIn": ["8.2.35", "8.3.36", "8.4.27", "8.5.12"] }],
+    "check": [
+      "Go to Tools → Site Health → Info and open the \"Server\" section.",
+      "Read the \"PHP version\" line.",
+      "Fixed versions: 8.2.35, 8.3.36, 8.4.27, 8.5.12 or later on the same branch. PHP 8.1 and older are past end of life and get no fix at all."
+    ],
+    "fix": [
+      "If your version is older, open a support ticket with your host. The checker on this page writes the message for you.",
+      "Some hosting control panels let you pick the PHP version yourself (look for \"PHP Selector\" or \"PHP version\"). Pick the newest version on your current branch.",
+      "After any PHP change, open your home page and one inner page to check they still load."
+    ],
+    "help": "If your host can't patch PHP, tell your kingdom webministry. A site on unpatched PHP should be treated as at risk.",
+    "technical": "CVE-2026-109618 and CVE-2026-109619, unauthenticated remote code execution. Added to CISA's Known Exploited Vulnerabilities catalog on 2026-10-26.",
+    "sources": [
+      "https://www.cisa.gov/news-events/alerts/2026/10/21/critical-vulnerabilities-php-require-immediate-patching",
+      "https://www.cve.org/CVERecord?id=CVE-2026-109618"
+    ]
+  }
+]
