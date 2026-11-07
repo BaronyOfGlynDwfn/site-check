@@ -1,5 +1,66 @@
 [
   {
+    "id": "2026-11-07-elementor",
+    "date": "2026-11-07",
+    "severity": "medium",
+    "title": "Elementor: update to 4.3.6",
+    "summary": "One new security problem in the Elementor plugin. The most serious could let someone plant harmful code in pages that visitors then load.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "elementor",
+        "through": "4.3.5"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Elementor\" and read the version number under its name.",
+      "Version 4.3.5 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Elementor\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-120850: WordPress Elementor Website Builder plugin <= 4.3.5 - Cross Site Scripting (XSS) vulnerability",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-120850",
+      "https://wordpress.org/plugins/elementor/"
+    ]
+  },
+  {
+    "id": "2026-11-07-the-events-calendar",
+    "date": "2026-11-07",
+    "severity": "medium",
+    "title": "The Events Calendar: update to 6.18.3.1",
+    "summary": "Two new security problems in The Events Calendar plugin. The most serious could let someone run their own code on the server, which amounts to taking over the site.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "the-events-calendar",
+        "through": "6.18.3"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"The Events Calendar\" and read the version number under its name.",
+      "Version 6.18.3 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"The Events Calendar\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-123464: WordPress The Events Calendar plugin <= 6.18.3 - Cross Site Scripting (XSS) vulnerability · CVE-2026-123469: WordPress The Events Calendar plugin <= 6.18.3 - Content Injection vulnerability",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-123464",
+      "https://www.cve.org/CVERecord?id=CVE-2026-123469",
+      "https://wordpress.org/plugins/the-events-calendar/"
+    ]
+  },
+  {
     "id": "2026-11-06-elementor",
     "date": "2026-11-06",
     "severity": "high",
