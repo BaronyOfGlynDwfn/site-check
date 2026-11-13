@@ -1,5 +1,96 @@
 [
   {
+    "id": "2026-11-13-contact-form-7",
+    "date": "2026-11-13",
+    "severity": "medium",
+    "title": "Contact Form 7: update to 6.2.5 or later",
+    "summary": "One new security problem in the Contact Form 7 plugin. The most serious could cause a security problem.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "contact-form-7",
+        "fixedIn": "6.2.5"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Contact Form 7\" and read the version number under its name.",
+      "Any version older than 6.2.5 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Contact Form 7\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-120407: Contact Form 7 < 6.2.5 - Editor+ Sensitive User Data Disclosure via Form Default Values (fixed in 6.2.5)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-120407",
+      "https://wordpress.org/plugins/contact-form-7/"
+    ]
+  },
+  {
+    "id": "2026-11-12-elementor",
+    "date": "2026-11-12",
+    "severity": "medium",
+    "title": "Elementor: update to 4.3.6 or later",
+    "summary": "One new security problem in the Elementor plugin. The most serious could let someone plant harmful code in pages that visitors then load, and can be used by anyone with a Contributor account or higher.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "elementor",
+        "fixedIn": "4.3.6"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Elementor\" and read the version number under its name.",
+      "Any version older than 4.3.6 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Elementor\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-104718: Elementor Website Builder – more than just a page builder < 4.3.6 - Authenticated (Contributor+) Stored Cross-Site Scripting (fixed in 4.3.6)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-104718",
+      "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/elementor/elementor-website-builder-more-than-just-a-page-builder-436-authenticated-contributor-stored-cross-site-scripting",
+      "https://wordpress.org/plugins/elementor/"
+    ]
+  },
+  {
+    "id": "2026-11-08-contact-form-7",
+    "date": "2026-11-08",
+    "severity": "medium",
+    "title": "Contact Form 7: update to 6.2.4 or later",
+    "summary": "One new security problem in the Contact Form 7 plugin. The most serious could let someone run their own code on the server, which amounts to taking over the site, and can be used by anyone on the internet, with no login.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "contact-form-7",
+        "fixedIn": "6.2.4"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Contact Form 7\" and read the version number under its name.",
+      "Any version older than 6.2.4 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Contact Form 7\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-114432: Contact Form 7 6.2 - 6.2.3 - Unauthenticated Arbitrary File Upload via Invalid UTF-8 Filename (fixed in 6.2.4)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-114432",
+      "https://wordpress.org/plugins/contact-form-7/"
+    ]
+  },
+  {
     "id": "2026-11-07-elementor",
     "date": "2026-11-07",
     "severity": "medium",
