@@ -703,6 +703,7 @@
   "CVE-2026-119368",
   "CVE-2026-119369",
   "CVE-2026-119370",
+  "CVE-2026-120407",
   "CVE-2026-1206",
   "CVE-2026-120850",
   "CVE-2026-12127",
@@ -1224,6 +1225,7 @@
   "plugin/contact-form-7/5.9.5",
   "plugin/contact-form-7/6.2.4",
   "plugin/contact-form-7/6.2.4/let someone run their own code on the server, which amounts to taking over the site",
+  "plugin/contact-form-7/6.2.5/cause a security problem",
   "plugin/content-control/1.1.10",
   "plugin/content-control/2.2.0",
   "plugin/content-control/2.6.0",
@@ -1508,6 +1510,6 @@
   "theme/twentytwentyfive",
   "theme/twentytwentyfour"
  ],
- "cveSince": "2026-11-13T02:32:43.060Z",
- "updated": "2026-11-13T02:44:36.851Z"
+ "cveSince": "2026-11-13T14:44:36.558Z",
+ "updated": "2026-11-13T14:49:44.418Z"
 }
