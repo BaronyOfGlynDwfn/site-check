@@ -697,6 +697,7 @@
   "CVE-2026-108761",
   "CVE-2026-109618",
   "CVE-2026-109619",
+  "CVE-2026-109878",
   "CVE-2026-109883",
   "CVE-2026-109884",
   "CVE-2026-110762",
@@ -734,6 +735,9 @@
   "CVE-2026-129501",
   "CVE-2026-129506",
   "CVE-2026-129538",
+  "CVE-2026-131768",
+  "CVE-2026-131769",
+  "CVE-2026-131770",
   "CVE-2026-13390",
   "CVE-2026-14355",
   "CVE-2026-15353",
@@ -1352,6 +1356,7 @@
   "plugin/elementor/4.3.5",
   "plugin/elementor/4.3.5/let someone plant harmful code in pages that visitors then load",
   "plugin/elementor/4.3.6/let someone plant harmful code in pages that visitors then load",
+  "plugin/elementor/4.4.0/let someone plant harmful code in pages that visitors then load",
   "plugin/jetpack/1.1.3",
   "plugin/jetpack/12.1.1",
   "plugin/jetpack/12.7",
@@ -1430,6 +1435,8 @@
   "plugin/the-events-calendar/6.18.3",
   "plugin/the-events-calendar/6.18.3/let someone plant harmful code in pages that visitors then load",
   "plugin/the-events-calendar/6.18.3/let someone run their own code on the server, which amounts to taking over the site",
+  "plugin/the-events-calendar/6.18.4/let someone do things their account shouldn't be allowed to do",
+  "plugin/the-events-calendar/6.18.4/let someone run their own code on the server, which amounts to taking over the site",
   "plugin/the-events-calendar/6.2.8.1",
   "plugin/the-events-calendar/6.2.9",
   "plugin/the-events-calendar/6.3.1",
@@ -1582,6 +1589,6 @@
   "theme/twentytwentyfive",
   "theme/twentytwentyfour"
  ],
- "cveSince": "2026-11-20T02:43:38.076Z",
- "updated": "2026-11-20T02:49:38.099Z"
+ "cveSince": "2026-11-20T14:44:26.806Z",
+ "updated": "2026-11-20T14:52:41.142Z"
 }
