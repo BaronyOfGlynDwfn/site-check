@@ -1,5 +1,347 @@
 [
   {
+    "id": "2026-11-20-elementor",
+    "date": "2026-11-20",
+    "severity": "high",
+    "title": "Elementor: update to 4.4.1",
+    "summary": "One new security problem in the Elementor plugin. The most serious could let someone plant harmful code in pages that visitors then load.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "elementor",
+        "through": "4.4.0"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Elementor\" and read the version number under its name.",
+      "Version 4.4.0 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Elementor\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-109878: WordPress Elementor Website Builder plugin <= 4.4.0 - Cross Site Scripting (XSS) vulnerability",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-109878",
+      "https://wordpress.org/plugins/elementor/"
+    ]
+  },
+  {
+    "id": "2026-11-20-the-events-calendar",
+    "date": "2026-11-20",
+    "severity": "medium",
+    "title": "The Events Calendar: update to 6.18.4.1",
+    "summary": "Three new security problems in The Events Calendar plugin. The most serious could let someone run their own code on the server, which amounts to taking over the site.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "the-events-calendar",
+        "through": "6.18.4"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"The Events Calendar\" and read the version number under its name.",
+      "Version 6.18.4 or lower is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"The Events Calendar\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-131770: WordPress The Events Calendar plugin <= 6.18.4 - Broken Access Control vulnerability · CVE-2026-131768: WordPress The Events Calendar plugin <= 6.18.4 - Content Injection vulnerability · CVE-2026-131769: WordPress The Events Calendar plugin <= 6.18.4 - Broken Access Control vulnerability",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-131770",
+      "https://www.cve.org/CVERecord?id=CVE-2026-131768",
+      "https://www.cve.org/CVERecord?id=CVE-2026-131769",
+      "https://wordpress.org/plugins/the-events-calendar/"
+    ]
+  },
+  {
+    "id": "2026-11-19-php",
+    "date": "2026-11-19",
+    "severity": "critical",
+    "title": "PHP: ask your host to confirm PHP is patched",
+    "summary": "17 new security problems in PHP, which runs on your host's server. The most serious could let someone run their own code on the server, which amounts to taking over the site, and can be used by anyone on the internet, with no login. Your host has to fix this one.",
+    "affects": [
+      {
+        "kind": "php",
+        "fixedIn": [
+          "8.2.36",
+          "8.3.37",
+          "8.4.28",
+          "8.5.13"
+        ]
+      }
+    ],
+    "check": [
+      "Go to Tools → Site Health → Info and open the \"Server\" section.",
+      "Read the \"PHP version\" line.",
+      "Fixed versions: 8.2.36, 8.3.37, 8.4.28, 8.5.13 or later on the same branch."
+    ],
+    "fix": [
+      "Open a support ticket with your host. The checker on this page writes the message for you.",
+      "If your control panel has a \"PHP Selector\" or \"PHP version\" setting, pick the newest version on your current branch.",
+      "After any PHP change, open your home page and one inner page to check they still load."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-115560: Session serializer mismatch can lead to remote code execution (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-126714: Partially overwritten session files can lead to remote code execution (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-127960: Denial of service through folded HTTP response headers (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-128064: Mixed-case HTTPS and FTPS URLs can expose data in plaintext (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-128090: PHAR OpenSSL signature bypass via algorithm downgrade (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129182: Use-after-free via repopulation of last_fatal_error_backtrace global after shutdown (fixed in 8.5.13) · CVE-2026-129289: PHP-FPM request smuggling through an unread HTTP request body (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129291: PHP-FPM epoll use-after-free can lead to local privilege escalation (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129292: PHP-FPM status endpoint XSS via unescaped user and script fields (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129438: Incorrect RFC 3986 URI serialization for oversized input (fixed in 8.5.13) · CVE-2026-129474: Use-after-free in magic method backtraces can lead to remote code execution (fixed in 8.5.13) · CVE-2026-129481: Use-after-free after interrupted session shutdown (fixed in 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129496: Timezone cache use-after-free can lead to remote code execution (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129501: Double free during DOM XML serialization (fixed in 8.4.28, 8.5.13) · CVE-2026-129506: SOAP use-after-free when processing DTD entity references (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-129538: PHP-CGI out-of-bounds read and write during PATH_INFO correction (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13) · CVE-2026-15353: SOAP information disclosure through malformed array dimensions (fixed in 8.2.36, 8.3.37, 8.4.28, 8.5.13)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-115560",
+      "https://www.cve.org/CVERecord?id=CVE-2026-126714",
+      "https://www.cve.org/CVERecord?id=CVE-2026-127960",
+      "https://www.cve.org/CVERecord?id=CVE-2026-128064",
+      "https://www.cve.org/CVERecord?id=CVE-2026-128090",
+      "https://www.cve.org/CVERecord?id=CVE-2026-129182"
+    ]
+  },
+  {
+    "id": "2026-11-19-elementor",
+    "date": "2026-11-19",
+    "severity": "medium",
+    "title": "Elementor: update to 4.0.6 or later",
+    "summary": "One new security problem in the Elementor plugin. The most serious could let someone see information that should be private, and can be used by anyone with a Contributor account or higher.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "elementor",
+        "fixedIn": "4.0.6"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Elementor\" and read the version number under its name.",
+      "Any version older than 4.0.6 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Elementor\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-2307: Elementor <= 4.0.5 - Authenticated (Contributor+) Sensitive Information Exposure (fixed in 4.0.6)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-2307",
+      "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/elementor/elementor-405-authenticated-contributor-sensitive-information-exposure",
+      "https://wordpress.org/plugins/elementor/"
+    ]
+  },
+  {
+    "id": "2026-11-19-themeisle-companion",
+    "date": "2026-11-19",
+    "severity": "medium",
+    "title": "Orbit Fox Companion: update to 3.0.14 or later",
+    "summary": "One new security problem in the Orbit Fox Companion plugin. The most serious could let someone plant harmful code in pages that visitors then load, and can be used by anyone with an account on the site.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "themeisle-companion",
+        "fixedIn": "3.0.14"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Orbit Fox Companion\" and read the version number under its name.",
+      "Any version older than 3.0.14 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Orbit Fox Companion\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-129322: CVE-2026-129322 (fixed in 3.0.14)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-129322",
+      "https://wordpress.org/plugins/themeisle-companion/"
+    ]
+  },
+  {
+    "id": "2026-11-19-updraftplus",
+    "date": "2026-11-19",
+    "severity": "high",
+    "title": "UpdraftPlus - Backup/Restore: update to 1.26.16 or later",
+    "summary": "One new security problem in the UpdraftPlus - Backup/Restore plugin. The most serious could let someone run their own code on the server, which amounts to taking over the site, and can be used by anyone with an account on the site, even a basic Subscriber.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "updraftplus",
+        "fixedIn": "1.26.16"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"UpdraftPlus - Backup/Restore\" and read the version number under its name.",
+      "Any version older than 1.26.16 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"UpdraftPlus - Backup/Restore\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-108761: UpdraftPlus: WP Backup & Migration Plugin <= 1.26.15 and UpdraftPlus Premium <= 2.26.15 - Authenticated (Subscriber+) Second-Order SQL Injection to Remote Code Execution via User Profile Description (fixed in 1.26.16)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-108761",
+      "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/updraftplus/updraftplus-wp-backup-migration-plugin-12615-and-updraftplus-premium-22615-authenticated-subscriber-second-order-sql-injection-to-remote-code-execution-via-user-profile-description",
+      "https://wordpress.org/plugins/updraftplus/"
+    ]
+  },
+  {
+    "id": "2026-11-19-core",
+    "date": "2026-11-19",
+    "severity": "high",
+    "title": "WordPress 7.1.5: security release",
+    "summary": "19 new security problems in WordPress itself. The most serious could let someone run their own code on the server, which amounts to taking over the site, and can be used by anyone on the internet, with no login.",
+    "affects": [
+      {
+        "kind": "core",
+        "fixedIn": [
+          "4.7.40",
+          "4.8.35",
+          "4.9.36",
+          "5.0.32",
+          "5.1.29",
+          "5.2.31",
+          "5.3.28",
+          "5.4.26",
+          "5.5.25",
+          "5.6.24",
+          "5.7.22",
+          "5.8.20",
+          "5.9.21",
+          "6.0.19",
+          "6.1.17",
+          "6.2.16",
+          "6.3.15",
+          "6.4.15",
+          "6.5.15",
+          "6.6.12",
+          "6.7.12",
+          "6.8.13",
+          "6.9.12",
+          "7.0.9",
+          "7.1.5"
+        ]
+      }
+    ],
+    "check": [
+      "Go to Dashboard → Updates.",
+      "The page says \"You have the latest version of WordPress\" when you are up to date."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "Go to Dashboard → Updates and click \"Update to version 7.1.5\" (the newest offered).",
+      "Sites staying on an older branch are fixed by 4.7.40, 4.8.35, 4.9.36, 5.0.32, 5.1.29, 5.2.31, 5.3.28, 5.4.26, 5.5.25, 5.6.24, 5.7.22, 5.8.20, 5.9.21, 6.0.19, 6.1.17, 6.2.16, 6.3.15, 6.4.15, 6.5.15, 6.6.12, 6.7.12, 6.8.13, 6.9.12, 7.0.9.",
+      "Most sites update themselves automatically for security releases. Check anyway."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "A cross-site scripting (XSS) issue in wp_interactivity_data_wp_context() via the store namespace (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15) · A malformed regular expression that broadened JSON media type matching, fixed as a hardening measure (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24) · An SQL injection issue in WP_Meta_Query via nested relation values (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · A reflected cross-site scripting (XSS) issue in the legacy media library popup (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · A multisite privilege escalation issue letting a site Administrator take over a Super Admin account via Customizer menu previews (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · An unauthenticated information disclosure issue exposing private taxonomy terms via the REST API search endpoint (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24) · An Author+ information disclosure issue exposing user email addresses via the REST API comments endpoint (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · A Contributor+ stored cross-site scripting (XSS) issue in the Comment Date block via its date format (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19) · An unauthenticated privilege escalation issue via Template Part block attributes that could lead to remote code execution (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21) · A cross-site scripting (XSS) issue in the block editor via Openverse image metadata (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16) · An SQL injection issue via the front page setting in Customizer changeset previews (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · A Contributor+ cross-site scripting (XSS) issue via scripts in oEmbed provider responses (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35) · An unauthenticated stored cross-site scripting (XSS) issue via shortcode attributes in comments (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · An unauthenticated denial of service issue via batched XML-RPC pingbacks (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · An Editor+ information disclosure issue via post and template author assignment in the REST API (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · An Administrator stored cross-site scripting (XSS) issue via Customizer previews (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · An Author+ authorization bypass issue via comment editing in the admin (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · A Subscriber+ information disclosure issue via XML-RPC `wp.getComments` (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21, 5.8.20, 5.7.22, 5.6.24, 5.5.25, 5.4.26, 5.3.28, 5.2.31, 5.1.29, 5.0.32, 4.9.36, 4.8.35, 4.7.40) · A Contributor+ stored cross-site scripting (XSS) issue in the block editor via media filenames (fixed in 7.1.5, 7.0.9, 6.9.12, 6.8.13, 6.7.12, 6.6.12, 6.5.15, 6.4.15, 6.3.15, 6.2.16, 6.1.17, 6.0.19, 5.9.21)",
+    "sources": [
+      "https://github.com/WordPress/wordpress-develop/security/advisories/GHSA-2frv-jg59-g699",
+      "https://github.com/WordPress/wordpress-develop/security/advisories/GHSA-6955-723v-xvmm",
+      "https://github.com/WordPress/wordpress-develop/security/advisories/GHSA-xc9c-4hg4-h4jg",
+      "https://github.com/WordPress/wordpress-develop/security/advisories/GHSA-gm52-6h3w-97v4",
+      "https://github.com/WordPress/wordpress-develop/security/advisories/GHSA-mwj7-xhp9-7773",
+      "https://github.com/WordPress/wordpress-develop/security/advisories/GHSA-rcr3-43fx-wqfv"
+    ]
+  },
+  {
+    "id": "2026-11-13-contact-form-7",
+    "date": "2026-11-13",
+    "severity": "medium",
+    "title": "Contact Form 7: update to 6.2.5 or later",
+    "summary": "One new security problem in the Contact Form 7 plugin. The most serious could cause a security problem.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "contact-form-7",
+        "fixedIn": "6.2.5"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Contact Form 7\" and read the version number under its name.",
+      "Any version older than 6.2.5 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Contact Form 7\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-120407: Contact Form 7 < 6.2.5 - Editor+ Sensitive User Data Disclosure via Form Default Values (fixed in 6.2.5)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-120407",
+      "https://wordpress.org/plugins/contact-form-7/"
+    ]
+  },
+  {
+    "id": "2026-11-12-elementor",
+    "date": "2026-11-12",
+    "severity": "medium",
+    "title": "Elementor: update to 4.3.6 or later",
+    "summary": "One new security problem in the Elementor plugin. The most serious could let someone plant harmful code in pages that visitors then load, and can be used by anyone with a Contributor account or higher.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "elementor",
+        "fixedIn": "4.3.6"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Elementor\" and read the version number under its name.",
+      "Any version older than 4.3.6 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Elementor\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-104718: Elementor Website Builder – more than just a page builder < 4.3.6 - Authenticated (Contributor+) Stored Cross-Site Scripting (fixed in 4.3.6)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-104718",
+      "https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/elementor/elementor-website-builder-more-than-just-a-page-builder-436-authenticated-contributor-stored-cross-site-scripting",
+      "https://wordpress.org/plugins/elementor/"
+    ]
+  },
+  {
+    "id": "2026-11-08-contact-form-7",
+    "date": "2026-11-08",
+    "severity": "medium",
+    "title": "Contact Form 7: update to 6.2.4 or later",
+    "summary": "One new security problem in the Contact Form 7 plugin. The most serious could let someone run their own code on the server, which amounts to taking over the site, and can be used by anyone on the internet, with no login.",
+    "affects": [
+      {
+        "kind": "plugin",
+        "slug": "contact-form-7",
+        "fixedIn": "6.2.4"
+      }
+    ],
+    "check": [
+      "Go to Plugins → Installed Plugins.",
+      "Find \"Contact Form 7\" and read the version number under its name.",
+      "Any version older than 6.2.4 is affected."
+    ],
+    "fix": [
+      "Make a backup first.",
+      "On the same screen, click \"update now\" under \"Contact Form 7\".",
+      "Open a page that uses it afterwards to check it still works."
+    ],
+    "help": "If the update fails, or something looks wrong afterwards, contact your kingdom webministry.",
+    "technical": "CVE-2026-114432: Contact Form 7 6.2 - 6.2.3 - Unauthenticated Arbitrary File Upload via Invalid UTF-8 Filename (fixed in 6.2.4)",
+    "sources": [
+      "https://www.cve.org/CVERecord?id=CVE-2026-114432",
+      "https://wordpress.org/plugins/contact-form-7/"
+    ]
+  },
+  {
     "id": "2026-11-07-elementor",
     "date": "2026-11-07",
     "severity": "medium",
