@@ -244,6 +244,7 @@
   "509e0e77b8fed618abb9d54dca5576e98d6ff4e09fdd04396d5a302efb26af6a",
   "513db673750b7a8edc779571400f444cf2fad932bf916c37a86ac3bfdf008bd3",
   "517508d538ba540f8e303100e3255916a74805b0a65d74711bb288f26d592ae6",
+  "523e803c4250d702418ca493fe28a887dac9775b98666b367529c8b31e0faf15",
   "526a210750f1c9a434541b2e9359f9c26edce93d8ab8952c6e02d00347a3524e",
   "53f0ae920306af72551a0c01cce598243f57d3d64c948011957eef3c74e745af",
   "54259b642a3795d391ead80b38fd514e3e9b4a1936c4ca3b0d0c3eb427bfbbcf",
@@ -766,6 +767,7 @@
   "CVE-2026-121154",
   "CVE-2026-121155",
   "CVE-2026-12127",
+  "CVE-2026-12255",
   "CVE-2026-123464",
   "CVE-2026-123469",
   "CVE-2026-126714",
@@ -1196,6 +1198,7 @@
   "f45ea1f9284674309b17537018fa7ef2568893b5bcabfd473ae2b7ac395bf159",
   "f45ee5e7c319fbe86c6a0ae1320df000172558af653831df5bfc20e1a23a3e4f",
   "f476f8dcfe6b8d14a11a0ee4f99304f5eff5026329266f933644505c5b3820e3",
+  "f4b6b25662efcfa395b6c6ff15ef1a991a3d75567f9e68f1209ffba5fe037c50",
   "f56c0fece2a2601f0623eed7ac3650d55099e356beaf722c2d90165c07f21064",
   "f5da175a5a31270f2721367fbef325cfdfba72bcbb7ba322421c574935f96672",
   "f5f0c66a2df8de873ff88577cf4d9c9cd9d6bf6963dbb5cacd2199efd79f721c",
@@ -1471,6 +1474,7 @@
   "plugin/mainwp-child/4.4.1.2",
   "plugin/mainwp-child/5.3.4",
   "plugin/mainwp-child/6.1.2",
+  "plugin/mainwp-child/6.1.2/cause a security problem",
   "plugin/mainwp-child/6.2.2",
   "plugin/php-compatibility-checker/1.6.0",
   "plugin/really-simple-ssl/8.0.0",
@@ -1669,6 +1673,6 @@
   "theme/twentytwentyfive",
   "theme/twentytwentyfour"
  ],
- "cveSince": "2026-11-23T02:46:02.308Z",
- "updated": "2026-11-23T02:54:39.277Z"
+ "cveSince": "2026-11-23T14:49:16.168Z",
+ "updated": "2026-11-23T14:59:25.118Z"
 }
